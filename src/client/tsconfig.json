@@ -1,0 +1,9 @@
+{
+    "compilerOptions": {
+        "target": "ES2018",
+        "allowJs": true,
+        "moduleResolution": "node",
+        "strict": true
+    },
+    "include": ["**/*.ts"]
+}

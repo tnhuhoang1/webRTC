@@ -15,7 +15,8 @@ const modelCanvas = document.getElementById("modelCanvas") as HTMLCanvasElement
 
 Promise.all([
     faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
-    faceapi.nets.faceExpressionNet.loadFromUri('/models')
+    faceapi.nets.faceExpressionNet.loadFromUri('/models'),
+    faceapi.nets.faceLandmark68Net.loadFromUri('/models')
 ]).then(startVideo)
   
 function startVideo() {
@@ -35,7 +36,11 @@ webcam.addEventListener('play', () => {
     const displaySize = { width: webcam.width, height: webcam.height }
     faceapi.matchDimensions(canvas, displaySize)
     setInterval(async () => {
-        const detections = await faceapi.detectAllFaces(webcam, new faceapi.TinyFaceDetectorOptions()).withFaceExpressions()
+        const detections = await faceapi.detectAllFaces(webcam, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceExpressions()
+        const resizedDetections = faceapi.resizeResults(detections, displaySize)
+        canvas.getContext('2d')!.clearRect(0, 0, canvas.width, canvas.height)
+        faceapi.draw.drawDetections(canvas, resizedDetections)
+        faceapi.draw.drawFaceLandmarks(canvas, resizedDetections)
         if(detections[0] !== undefined && detections[0]["expressions"] !== undefined){
             const sortable = Object.entries(detections[0]["expressions"])
             .sort(([,a],[,b]) => b-a)
@@ -106,6 +111,9 @@ webcam.addEventListener('play', () => {
     }, 500)
   })
 
+canvasOutput.onload = function(){
+    canvasOutput.srcObject = modelCanvasStream
+}
 
 let init = async () => {
     // localStream = await navigator.mediaDevices.getUserMedia({video:true, audio:false})
